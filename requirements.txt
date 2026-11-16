@@ -1,0 +1,5 @@
+pydataxm 
+pandas
+ipykernel
+requests
+openpyxl
