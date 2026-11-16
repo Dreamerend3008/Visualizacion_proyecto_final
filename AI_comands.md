@@ -16,3 +16,7 @@ if you see the output data there are some problems. 1: some columns still are in
  for the last .csv the information of each column needs to be related with the name of the original file, assing a name for each columns
 
  if a file has the data segmented in locations or something like that check if exists a table that has all that info resumed for the coountry otherwise make an average.
+
+
+Tambien utilizamos ia para obtener una funcion para mostrar la temporalidad de cada columna del conjunto de dataset mensual y anual.
+Para facilitar el proceso de decision de las visualizaciones.
