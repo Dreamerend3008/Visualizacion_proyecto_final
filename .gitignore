@@ -2,3 +2,4 @@
 data/**
 # Pycache
 __pycache__/
+*.dbdiagram

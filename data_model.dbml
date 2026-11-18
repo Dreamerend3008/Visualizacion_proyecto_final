@@ -1,0 +1,75 @@
+// Use DBML to define your database structure
+// Docs: https://dbml.dbdiagram.io/docs
+
+Table all_parameters_yearly {
+  year integer [primary key, not null, note: 'Año calendario (1950–2040, 91 filas)']
+  aportes_hidricos__Value_GWh float [note: 'Energía equivalente al agua que entra a los embalses (GWh), 2000–2026']
+  clima_colombia_diario_2000_2026__precipitacion_total_mm float [note: 'Lluvia diaria promedio (mm/día), promedio 12 departamentos, 2000–2026']
+  clima_colombia_diario_2000_2026__temp_promedio_c float [note: 'Temperatura media diaria promedio (°C), 2000–2026']
+  clima_colombia_diario_2000_2026__temp_maxima_c float [note: 'Temperatura máxima diaria promedio (°C), 2000–2026']
+  cpc_oni_historico__TOTAL float [note: 'Temperatura del Pacífico ecuatorial ONI (promedio móvil 3 meses), 1950–2026']
+  cpc_oni_historico__ANOM float [note: 'Anomalía ONI frente a la normal (>= 0.5 El Niño, <= -0.5 La Niña), 1950–2026']
+  cpc_roni_historico__ANOM float [note: 'Anomalía RONI (ONI relativo ajustado por calentamiento tropical), 1950–2026']
+  demanda_comercial_reg__Value_GWh float [note: 'Demanda facturada por comercializadores (GWh), 2000–2026']
+  demanda_real_sin__Value_GWh float [note: 'Energía consumida medida en el SIN (GWh), 2000–2026']
+  generacion_real__Value_GWh float [note: 'Energía generada total en el SIN (GWh), 2000–2026']
+  media_historica_aportes__Value_GWh float [note: 'Promedio histórico de aportes hídricos (GWh), 2000–2026']
+  precio_bolsa_nacional__Value float [note: 'Precio promedio en bolsa mayorista (COP/kWh), 2000–2026']
+  upme_proyeccion_sin_mensual__demanda_sin_esc_medio_gwh float [note: 'Proyección UPME escenario medio de demanda SIN (GWh), 2026–2040']
+  upme_proyeccion_sin_mensual__ic_sup_95_gwh float [note: 'Límite superior IC 95% proyección UPME (GWh), 2026–2040']
+  upme_proyeccion_sin_mensual__ic_inf_95_gwh float [note: 'Límite inferior IC 95% proyección UPME (GWh), 2026–2040']
+  upme_proyeccion_sin_mensual__ic_sup_68_gwh float [note: 'Límite superior IC 68% proyección UPME (GWh), 2026–2040']
+  upme_proyeccion_sin_mensual__ic_inf_68_gwh float [note: 'Límite inferior IC 68% proyección UPME (GWh), 2026–2040']
+  volumen_util_energia_sistema__Value_GWh float [note: 'Volumen útil agregado del sistema en energía (GWh), 2000–2026']
+
+  Note: 'Tabla anual agregada (1950–2040, 91 registros) generada en cleaning.py'
+}
+
+Table all_parameters_monthly {
+  "year-month" varchar [not null, unique, note: 'Periodo YYYY-MM (1950-01 a 2040-12)']
+  year integer [not null, note: 'Año calendario']
+  month integer [not null, note: 'Mes calendario (1–12)']
+  aportes_hidricos__Value_GWh float [note: 'Aportes hídricos mensuales (GWh), 2000-01 a 2026-11']
+  clima_colombia_diario_2000_2026__precipitacion_total_mm float [note: 'Precipitación promedio mensual (mm/día), 2000-01 a 2026-11']
+  clima_colombia_diario_2000_2026__temp_promedio_c float [note: 'Temperatura media mensual (°C), 2000-01 a 2026-11']
+  clima_colombia_diario_2000_2026__temp_maxima_c float [note: 'Temperatura máxima promedio mensual (°C), 2000-01 a 2026-11']
+  cpc_oni_historico__TOTAL float [note: 'ONI total trimestral asignado a mes central, 1950-01 a 2026-09']
+  cpc_oni_historico__ANOM float [note: 'Anomalía ONI mensual/trimestral, 1950-01 a 2026-09']
+  cpc_roni_historico__ANOM float [note: 'Anomalía RONI mensual/trimestral, 1950-01 a 2026-09']
+  demanda_comercial_reg__Value_GWh float [note: 'Demanda comercial regulada mensual (GWh), 2000-01 a 2026-11']
+  demanda_real_sin__Value_GWh float [note: 'Demanda real medida SIN mensual (GWh), 2000-01 a 2026-11']
+  generacion_real__Value_GWh float [note: 'Generación real mensual SIN (GWh), 2000-01 a 2026-11']
+  media_historica_aportes__Value_GWh float [note: 'Media histórica de aportes mensual (GWh), 2000-01 a 2026-11']
+  precio_bolsa_nacional__Value float [note: 'Precio promedio mensual en bolsa (COP/kWh), 2000-01 a 2026-11']
+  upme_proyeccion_sin_mensual__demanda_sin_esc_medio_gwh float [note: 'Proyección UPME escenario medio (GWh), 2026-04 a 2040-12']
+  upme_proyeccion_sin_mensual__ic_sup_95_gwh float [note: 'IC superior 95% UPME (GWh), 2026-04 a 2040-12']
+  upme_proyeccion_sin_mensual__ic_inf_95_gwh float [note: 'IC inferior 95% UPME (GWh), 2026-04 a 2040-12']
+  upme_proyeccion_sin_mensual__ic_sup_68_gwh float [note: 'IC superior 68% UPME (GWh), 2026-04 a 2040-12']
+  upme_proyeccion_sin_mensual__ic_inf_68_gwh float [note: 'IC inferior 68% UPME (GWh), 2026-04 a 2040-12']
+  volumen_util_energia_sistema__Value_GWh float [note: 'Volumen útil agregado del sistema mensual (GWh), 2000-01 a 2026-11']
+
+  indexes {
+    (year, month) [pk]
+  }
+
+  Note: 'Tabla maestra mensual (1092 registros: 1950-01 a 2040-12)'
+}
+
+Table volumen_util_energia_embalse {
+  Date varchar [not null, note: 'Fecha primer día del mes (YYYY-MM-DD)']
+  year integer [not null, note: 'Año extraído de Date']
+  month integer [not null, note: 'Mes extraído de Date (1–12)']
+  Id varchar [not null, note: 'Tipo de entidad XM (ej. Embalse)']
+  Name varchar [not null, note: 'Nombre del embalse (ej. AGREGADO BOGOTA, PENOL, GUAVIO)']
+  Value_GWh float [not null, note: 'Volumen útil promedio mensual del embalse (GWh)']
+
+  indexes {
+    (year, month, Name) [pk]
+  }
+
+  Note: 'Detalle mensual por embalse (6870 registros, 2000-01 a 2026-11)'
+}
+
+// Relaciones
+Ref fk_monthly_yearly: all_parameters_monthly.year > all_parameters_yearly.year
+Ref fk_embalse_monthly: volumen_util_energia_embalse.(year, month) > all_parameters_monthly.(year, month)
