@@ -1,0 +1,236 @@
+// Use DBML to define your database structure
+// Docs: https://dbml.dbdiagram.io/docs
+// Modelo inicial / fuentes originales (Tmp/) sin las tablas consolidadas
+// (all_parameters_monthly, all_parameters_yearly y volumen_util_energia_embalse están en data_model.dbml)
+
+// ==========================================
+// 1. DIMENSIONES TEMPORALES (Cruce de datasets)
+// ==========================================
+
+Table anio {
+  anio integer [primary key, not null, note: 'Año calendario (1950–2040)']
+
+  Note: 'Tabla puente anual para cruzar histórico climático/ENSO, operación XM y proyecciones UPME.'
+}
+
+Table mes {
+  mes_id varchar [primary key, not null, note: 'Primer día del mes (YYYY-MM-01)']
+  anio integer [not null, note: 'Año calendario']
+  mes_num integer [not null, note: 'Número de mes (1–12)']
+
+  indexes {
+    (anio, mes_num) [unique]
+  }
+
+  Note: 'Tabla puente mensual común (1950-01-01 a 2040-12-01).'
+}
+
+Table fecha {
+  fecha varchar [primary key, not null, note: 'Fecha ISO (YYYY-MM-DD)']
+  mes_id varchar [not null, note: 'Mes al que pertenece la fecha (YYYY-MM-01)']
+
+  Note: 'Tabla puente diaria normalizada al mes para unir series diarias/reasimiladas.'
+}
+
+// ==========================================
+// 2. XM / SINERGOX (API pydataxm, 2000-01 a 2026-11)
+// ==========================================
+
+Table aportes_hidricos {
+  Date varchar [primary key, not null, note: 'Primer día del mes (YYYY-MM-01)']
+  Id varchar [not null, note: 'Sistema']
+  Value_GWh float [not null, note: 'Promedio mensual de aportes hídricos diarios (GWh)']
+
+  Note: 'XM / SinergoX (colección AporEner, 323 filas, 2000-01 a 2026-11).'
+}
+
+Table media_historica_aportes {
+  Date varchar [primary key, not null, note: 'Primer día del mes (YYYY-MM-01)']
+  Id varchar [not null, note: 'Sistema']
+  Value_GWh float [not null, note: 'Media histórica mensual de aportes hídricos (GWh)']
+
+  Note: 'XM / SinergoX (colección AporEnerMediHist, 323 filas, 2000-01 a 2026-11).'
+}
+
+Table volumen_util_energia_sistema {
+  Date varchar [primary key, not null, note: 'Primer día del mes (YYYY-MM-01)']
+  Id varchar [not null, note: 'Sistema']
+  Value_GWh float [not null, note: 'Promedio mensual del volumen útil agregado del sistema (GWh)']
+
+  Note: 'XM / SinergoX (colección VoluUtilDiarEner - Sistema, 323 filas, 2000-01 a 2026-11).'
+}
+
+Table demanda_comercial_reg {
+  Date varchar [primary key, not null, note: 'Primer día del mes (YYYY-MM-01)']
+  Id varchar [not null, note: 'Sistema']
+  Values_code varchar [not null, note: 'Sistema']
+  Value_GWh float [not null, note: 'Promedio mensual de demanda comercial regulada (GWh)']
+
+  Note: 'XM / SinergoX (colección DemaCome, 323 filas, 2000-01 a 2026-11).'
+}
+
+Table demanda_real_sin {
+  Date varchar [primary key, not null, note: 'Primer día del mes (YYYY-MM-01)']
+  Id varchar [not null, note: 'Sistema']
+  Values_code varchar [not null, note: 'Sistema']
+  Value_GWh float [not null, note: 'Promedio mensual de demanda real del SIN (GWh)']
+
+  Note: 'XM / SinergoX (colección DemaReal, 323 filas, 2000-01 a 2026-11).'
+}
+
+Table generacion_real {
+  Date varchar [primary key, not null, note: 'Primer día del mes (YYYY-MM-01)']
+  Id varchar [not null, note: 'Sistema']
+  Values_code varchar [not null, note: 'Sistema']
+  Value_GWh float [not null, note: 'Promedio mensual de generación real del SIN (GWh)']
+
+  Note: 'XM / SinergoX (colección Gene, 323 filas, 2000-01 a 2026-11).'
+}
+
+Table precio_bolsa_nacional {
+  Date varchar [primary key, not null, note: 'Primer día del mes (YYYY-MM-01)']
+  Id varchar [not null, note: 'Sistema']
+  Values_code varchar [not null, note: 'Sistema']
+  Value float [not null, note: 'Precio promedio mensual en bolsa nacional (COP/kWh)']
+
+  Note: 'XM / SinergoX (colección PrecBolsNaci, 323 filas, 2000-01 a 2026-11).'
+}
+
+// ==========================================
+// 3. NOAA / CPC (Índices ENSO, 1950-01 a 2026-09 / ASO 2026)
+// ==========================================
+
+Table cpc_oni_historico {
+  fecha varchar [primary key, not null, note: 'Mes central del trimestre móvil (YYYY-MM-01)']
+  SEAS varchar [not null, note: 'Trimestre móvil (DJF=ene, JFM=feb, ..., NDJ=dic)']
+  YR integer [not null, note: 'Año (1950–2026)']
+  TOTAL float [not null, note: 'Temperatura SST total (°C)']
+  ANOM float [not null, note: 'Anomalía ONI (°C)']
+
+  Note: 'NOAA / CPC ONI (921 filas, 1950-01 a 2026-09).'
+}
+
+Table cpc_roni_historico {
+  fecha varchar [primary key, not null, note: 'Mes central del trimestre móvil (YYYY-MM-01)']
+  SEAS varchar [not null, note: 'Trimestre móvil (DJF=ene, JFM=feb, ..., NDJ=dic)']
+  YR integer [not null, note: 'Año (1950–2026)']
+  ANOM float [not null, note: 'Anomalía RONI relativa (°C)']
+
+  Note: 'NOAA / CPC RONI (921 filas, 1950-01 a 2026-09).'
+}
+
+// ==========================================
+// 4. OPEN-METEO (Clima histórico departamental, 2000-01 a 2026-11)
+// ==========================================
+
+Table clima_colombia_diario_2000_2026 {
+  fecha varchar [not null, note: 'Primer día del mes tras agregación mensual (YYYY-MM-01)']
+  departamento varchar [not null, note: '12 dptos: ANTIOQUIA, ATLÁNTICO, BOLÍVAR, BOYACÁ, CALDAS, CESAR, CUNDINAMARCA, CÓRDOBA, HUILA, MAGDALENA, SANTANDER, TOLIMA']
+  precipitacion_total_mm float [not null, note: 'Precipitación diaria promedio del mes (mm/día)']
+  temp_promedio_c float [not null, note: 'Temperatura media mensual (°C)']
+  temp_maxima_c float [not null, note: 'Temperatura máxima diaria promedio mensual (°C)']
+
+  indexes {
+    (fecha, departamento) [pk]
+  }
+
+  Note: 'Open-Meteo reanálisis histórico (3876 filas = 323 meses x 12 dptos, 2000-01 a 2026-11). Proxy tras descartar API IDEAM.'
+}
+
+// ==========================================
+// 5. UPME (Proyecciones de Demanda, 2026-04 a 2040-12)
+// ==========================================
+
+Table upme_proyeccion_sin_mensual {
+  fecha varchar [primary key, not null, note: 'Primer día del mes proyectado (YYYY-MM-01)']
+  demanda_sin_esc_medio_gwh float [not null, note: 'Demanda proyectada escenario medio SIN (GWh)']
+  ic_sup_95_gwh float [not null, note: 'Límite superior IC 95% (GWh)']
+  ic_inf_95_gwh float [not null, note: 'Límite inferior IC 95% (GWh)']
+  ic_sup_68_gwh float [not null, note: 'Límite superior IC 68% (GWh)']
+  ic_inf_68_gwh float [not null, note: 'Límite inferior IC 68% (GWh)']
+  anio integer [not null, note: 'Año (2026–2040)']
+  mes integer [not null, note: 'Mes (1–12)']
+
+  indexes {
+    (anio, mes) [unique]
+  }
+
+  Note: 'UPME Anexo proyección demanda ago 2026 - hoja DEE_Mensual(GWh_mes) (177 filas, 2026-04 a 2040-12).'
+}
+
+Table upme_proyeccion_areas_mensual {
+  fecha varchar [primary key, not null, note: 'Primer día del mes proyectado (YYYY-MM-01)']
+  caribe_esc_medio_gwh float [not null, note: 'Proyección escenario medio área Caribe (GWh)']
+  oriente_esc_medio_gwh float [not null, note: 'Proyección escenario medio área Oriente (GWh)']
+  suroccidente_esc_medio_gwh float [not null, note: 'Proyección escenario medio área Suroccidente (GWh)']
+  antioquia_esc_medio_gwh float [not null, note: 'Proyección escenario medio área Antioquia (GWh)']
+  nordeste_esc_medio_gwh float [not null, note: 'Proyección escenario medio área Nordeste (GWh)']
+  gce_existentes_esc_medio_gwh float [not null, note: 'Proyección Grandes Consumidores Especiales existentes (GWh)']
+
+  Note: 'UPME Anexo proyección demanda ago 2026 - áreas regionales (177 filas, 2026-04 a 2040-12).'
+}
+
+// ==========================================
+// GRUPOS DE TABLAS
+// ==========================================
+
+TableGroup Dimensiones_Temporales {
+  anio
+  mes
+  fecha
+}
+
+TableGroup XM_SinergoX {
+  aportes_hidricos
+  media_historica_aportes
+  volumen_util_energia_sistema
+  demanda_comercial_reg
+  demanda_real_sin
+  generacion_real
+  precio_bolsa_nacional
+}
+
+TableGroup NOAA_CPC {
+  cpc_oni_historico
+  cpc_roni_historico
+}
+
+TableGroup OpenMeteo_Clima {
+  clima_colombia_diario_2000_2026
+}
+
+TableGroup UPME_Proyecciones {
+  upme_proyeccion_sin_mensual
+  upme_proyeccion_areas_mensual
+}
+
+// ==========================================
+// RELACIONES (A través de fecha, mes y anio)
+// ==========================================
+
+// Jerarquía temporal
+Ref fk_fecha_mes: fecha.mes_id > mes.mes_id
+Ref fk_mes_anio: mes.anio > anio.anio
+
+// XM / SinergoX -> mes
+Ref fk_aportes_mes: aportes_hidricos.Date - mes.mes_id
+Ref fk_media_aportes_mes: media_historica_aportes.Date - mes.mes_id
+Ref fk_vol_sistema_mes: volumen_util_energia_sistema.Date - mes.mes_id
+Ref fk_dem_comercial_mes: demanda_comercial_reg.Date - mes.mes_id
+Ref fk_dem_real_mes: demanda_real_sin.Date - mes.mes_id
+Ref fk_gen_real_mes: generacion_real.Date - mes.mes_id
+Ref fk_precio_bolsa_mes: precio_bolsa_nacional.Date - mes.mes_id
+
+// NOAA / CPC -> mes y anio
+Ref fk_oni_mes: cpc_oni_historico.fecha - mes.mes_id
+Ref fk_roni_mes: cpc_roni_historico.fecha - mes.mes_id
+Ref fk_oni_anio: cpc_oni_historico.YR > anio.anio
+Ref fk_roni_anio: cpc_roni_historico.YR > anio.anio
+
+// Open-Meteo clima departamental -> fecha (N departamentos por fecha)
+Ref fk_clima_fecha: clima_colombia_diario_2000_2026.fecha > fecha.fecha
+
+// UPME -> mes y anio
+Ref fk_upme_sin_mes: upme_proyeccion_sin_mensual.fecha - mes.mes_id
+Ref fk_upme_sin_anio: upme_proyeccion_sin_mensual.anio > anio.anio
+Ref fk_upme_areas_mes: upme_proyeccion_areas_mensual.fecha - mes.mes_id
